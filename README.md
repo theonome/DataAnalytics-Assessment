@@ -121,13 +121,13 @@ CLV is in **naira (₦)**. Since confirmed_amount is in kobo, we divide by 100 t
 ## Challenges
 
 **Handling missing last_charge_date values in investment plans:**
-Many records in the plans_plan table had NULL in the last_charge_date field, making it difficult to determine when a plan last received inflow. To solve this, I used COALESCE(last_charge_date, created_on) as a fallback. This ensured plans without charge dates still had a valid reference point for inactivity analysis.
+Many records in the plans_plan table had NULL in the `last_charge_date` field, making it difficult to determine when a plan last received inflow. To solve this, I used `COALESCE(last_charge_date, created_on)` as a fallback. This ensured plans without charge dates still had a valid reference point for inactivity analysis.
 
 **Avoiding divide-by-zero errors in tenure-based calculations:**
-Some users had very short tenures or multiple transactions within a single month. To avoid dividing by zero when calculating metrics like average transactions per month or CLV, I used GREATEST(..., 1) to enforce a minimum of 1 month. This preserved data integrity without skewing the output.
+In both Q2 and Q4, users with short tenure caused risk of division by zero. This was handled using `GREATEST(..., 1)`.
 
 **Querying large SQL files locally:**
-The original .sql file provided for database setup was over 70MB and exceeded phpMyAdmin’s default upload limits. I adjusted the upload_max_filesize and post_max_size settings in php.ini, restarted Apache through XAMPP, and successfully imported the file for use in phpMyAdmin.
+The .sql file was over 70MB and exceeded phpMyAdmin's limits. The issue was resolved by editing `php.ini` settings in XAMPP and restarting Apache.
 
 **Interpreting business logic in CLV calculation:**
 In Q4, the phrase “profit per transaction is 0.1% of the transaction value” required careful interpretation. I calculated profit dynamically using 0.1% of each user's actual inflow value. This produced a realistic customer lifetime value.
