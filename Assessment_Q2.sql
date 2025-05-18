@@ -1,8 +1,5 @@
 -- Q2: Transaction Frequency Analysis
--- Categorize customers by their average number of savings transactions per month:
---   - High Frequency (≥10)
---   - Medium Frequency (3–9)
---   - Low Frequency (≤2)
+-- Categorize customers based on their average number of savings transactions per month
 
 SELECT 
   frequency_category,
@@ -14,21 +11,22 @@ FROM (
     u.id AS customer_id,
     COUNT(s.id) AS total_txns,
 
-    -- Calculate the active span in months between first and last transaction (minimum 1)
+    -- Calculate the number of active months between first and last transaction
+    -- GREATEST ensures we don’t divide by 0 if all transactions happened in the same month
     GREATEST(TIMESTAMPDIFF(MONTH, MIN(s.transaction_date), MAX(s.transaction_date)), 1) AS active_months,
 
-    -- Derive average monthly transaction frequency
+    -- Calculate average monthly transaction frequency
     COUNT(s.id) / GREATEST(TIMESTAMPDIFF(MONTH, MIN(s.transaction_date), MAX(s.transaction_date)), 1) AS avg_txn_per_month,
 
-    -- Categorize based on average monthly frequency
+    -- Categorize based on monthly frequency
     CASE 
       WHEN COUNT(s.id) / GREATEST(TIMESTAMPDIFF(MONTH, MIN(s.transaction_date), MAX(s.transaction_date)), 1) >= 10 THEN 'High Frequency'
       WHEN COUNT(s.id) / GREATEST(TIMESTAMPDIFF(MONTH, MIN(s.transaction_date), MAX(s.transaction_date)), 1) BETWEEN 3 AND 9 THEN 'Medium Frequency'
       ELSE 'Low Frequency'
     END AS frequency_category
 
-  FROM users_customuser u
-  JOIN savings_savingsaccount s ON u.id = s.owner_id
+  FROM users_customuser AS u
+  JOIN savings_savingsaccount AS s ON u.id = s.owner_id
   WHERE s.transaction_date IS NOT NULL
   GROUP BY u.id
 ) AS frequency_summary
