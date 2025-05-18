@@ -10,7 +10,7 @@ Each solution:
 
 ---
 
-## Q1: Customers with Funded Savings and Investment Plans
+## Q1: High-Value Customers with Multiple Products
 
 ### Objective
 
