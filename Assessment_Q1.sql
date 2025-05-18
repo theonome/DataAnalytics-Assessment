@@ -1,4 +1,5 @@
--- Q1: Identify customers with at least one funded savings plan AND one funded investment plan
+-- Q1: High-Value Customers with Multiple Products
+-- Identify customers with at least one funded savings plan AND one funded investment plan
 -- Sort the results by total deposit amount in naira
 
 SELECT 
