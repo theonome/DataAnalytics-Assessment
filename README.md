@@ -6,36 +6,36 @@ Each solution:
 
 - Uses realistic assumptions based on schema and business logic  
 - Prioritizes clarity, data integrity, and analytical value  
-- Includes in-line SQL comments to meet code quality expectations
+- Includes in-line SQL comments to meet code quality expectations  
 
 ---
 
-## Q1: High-Value Customers with Multiple Products
+## Q1: Customers with Funded Savings and Investment Plans
 
 ### Objective
 
-Identify customers who have at least one funded savings plan and one funded investment plan, then display:
+Identify customers who have at least one funded savings plan and one funded investment plan, and report:
 
-- Their owner_id  
-- Full name  
-- Count of savings and investment plans  
-- Total amount deposited (in naira)
+- owner_id  
+- full name  
+- number of funded savings and investment plans  
+- total deposits in naira
 
-### Assumptions & Logic
+### Approach
 
-- A funded savings account has `confirmed_amount > 0`  
-- An investment plan must have `is_a_fund = 1` and `amount > 0`  
-- `confirmed_amount` is used instead of `amount` to ensure only confirmed inflows are counted  
-- Used `COALESCE` to protect against nulls when summing deposits  
-- Converted kobo to naira by dividing by 100  
-- Joined `users_customuser`, `savings_savingsaccount`, and `plans_plan`  
-- Grouped by user ID and name  
-- Used `HAVING` to ensure only users with at least one savings and one investment plan are returned  
-- Sorted by `total_deposits` in descending order
+1. Joined `users_customuser` with both `savings_savingsaccount` and `plans_plan` using `owner_id`
+2. Filtered savings where `confirmed_amount > 0`  
+3. Filtered investment plans where `amount > 0 AND is_a_fund = 1`  
+4. Used `COALESCE` to protect nulls during total deposit calculations  
+5. Converted total from kobo to naira by dividing by 100  
+6. Grouped by user ID and name  
+7. Used `HAVING` clause to restrict output to only users with both investment and savings plans  
+8. Sorted result by total deposit in descending order  
+9. Used `CONCAT(first_name, ' ', last_name)` instead of `u.name`, because the `name` field was often NULL in the dataset
 
-### Question?? Why `COUNT(DISTINCT s.id)` instead of alias?
+### Why `COUNT(DISTINCT s.id)` instead of alias?
 
-In SQL, aliases from the `SELECT` clause aren't available in `HAVING`, so we use the full aggregate expression instead.
+In SQL, aliases created in the `SELECT` clause cannot be reused in the `HAVING` clause. The raw aggregate expression must be used directly.
 
 ---
 
@@ -43,25 +43,27 @@ In SQL, aliases from the `SELECT` clause aren't available in `HAVING`, so we use
 
 ### Objective
 
-Categorize customers based on their average number of savings transactions per month, using the following categories:
+Categorize customers based on their average number of monthly savings transactions:
 
-- High Frequency (>= 10/month)  
+- High Frequency (≥10/month)  
 - Medium Frequency (3–9/month)  
-- Low Frequency (<= 2/month)
+- Low Frequency (≤2/month)
 
-### Assumptions & Logic
+### Approach
 
-- Each row in `savings_savingsaccount` represents a confirmed transaction (`transaction_date IS NOT NULL`)  
-- Calculated tenure span using `TIMESTAMPDIFF(MONTH, MIN(...), MAX(...))`  
-- Used `GREATEST(..., 1)` to avoid dividing by zero  
-- Calculated average transactions per month as `COUNT(txns) / active_months`  
-- Used `CASE WHEN` to assign frequency categories  
-- Grouped final result by `frequency_category` and calculated average frequency per group
+1. Joined `users_customuser` with `savings_savingsaccount` using `owner_id`  
+2. Filtered out NULL `transaction_date` values  
+3. Grouped by user  
+4. Calculated tenure in months using `TIMESTAMPDIFF(MONTH, MIN(transaction_date), MAX(transaction_date))`  
+5. Used `GREATEST(..., 1)` to prevent divide-by-zero  
+6. Derived average transactions per month as `total_txns / months`  
+7. Categorized users using `CASE WHEN` logic  
+8. Grouped results by frequency category and reported average per group
 
-### Question?? Why use `TIMESTAMPDIFF` instead of counting distinct months?
+### Why did I use `TIMESTAMPDIFF` instead of counting distinct months?
 
-Using `TIMESTAMPDIFF(MONTH, MIN(transaction_date), MAX(transaction_date))` gives a more accurate span of activity over time, regardless of gaps between months. This avoids overcounting users who transacted heavily in a single month and then stopped.  
-`GREATEST(..., 1)` is used to protect against divide-by-zero errors for users with activity in only one month.
+`TIMESTAMPDIFF` more accurately reflects the active span of a user’s transaction history.  
+It avoids overestimating users who transacted heavily in just one month, and `GREATEST(..., 1)` ensures clean division logic.
 
 ---
 
@@ -69,25 +71,25 @@ Using `TIMESTAMPDIFF(MONTH, MIN(transaction_date), MAX(transaction_date))` gives
 
 ### Objective
 
-Identify active savings or investment accounts with no inflow activity in the last 365 days.
+Find all active accounts (savings or investments) with no confirmed inflow in the past 365 days.
 
-### Assumptions & Logic
+### Approach
 
-- For savings: inflow is based on `confirmed_amount > 0` and `transaction_date`  
-- For investments: used `COALESCE(last_charge_date, created_on)` as a proxy for last activity  
-- Calculated inactivity using `DATEDIFF(CURDATE(), last_transaction_date)`  
-- Filtered for rows where `inactivity_days >= 365`  
-- Combined both account types using `UNION ALL`  
-- Added `type` labels to distinguish savings vs investment accounts  
-- Sorted final result by `inactivity_days DESC`
+1. Queried savings accounts with `confirmed_amount > 0`  
+2. Queried investment plans with `amount > 0 AND is_a_fund = 1`  
+3. Calculated last inflow date for savings using `MAX(transaction_date)`  
+4. Used `COALESCE(last_charge_date, created_on)` for investment inflow  
+5. Calculated inactivity in days using `DATEDIFF(CURDATE(), last_transaction_date)`  
+6. Filtered for `inactivity_days >= 365`  
+7. Combined both queries using `UNION ALL`  
+8. Labeled account types as 'Savings' or 'Investment'  
+9. Sorted by `inactivity_days` descending
 
-### Question?? Why use `COALESCE(last_charge_date, created_on)`?
+### Why did I use `COALESCE(last_charge_date, created_on)`?
 
-In the `plans_plan` table, many records had `NULL` in the `last_charge_date` field. Since this field most accurately reflects the most recent inflow or funding activity, I used it as my first choice.
-
-To ensure no plan was excluded due to a missing `last_charge_date`, I used `COALESCE(last_charge_date, created_on)` — this ensures I fall back to the plan’s creation date if no charge date is available.
-
-While `created_on` may not always reflect true inflow, this approach guarantees a complete view of inactive accounts while prioritizing actual transaction-based timestamps when available.
+Many records had `NULL` in `last_charge_date`.  
+`COALESCE` lets us fall back to `created_on` so we don’t miss plans with missing charge data.  
+It ensures every plan has a fallback for inactivity tracking, while prioritizing real transaction activity.
 
 ---
 
@@ -95,42 +97,42 @@ While `created_on` may not always reflect true inflow, this approach guarantees 
 
 ### Objective
 
-Estimate each customer’s CLV using the formula:
-
+Estimate customer lifetime value using the formula:  
 **CLV = (total_transactions / tenure_months) * 12 * avg_profit_per_transaction**
 
-Where:
+Where profit is defined as **0.1% of each transaction's confirmed amount**
 
-- Profit per transaction = 0.1% of each transaction’s `confirmed_amount`  
-- Tenure = months between `date_joined` and current date
+### Approach
 
-### Assumptions & Logic
+1. Joined `users_customuser` with `savings_savingsaccount`  
+2. Filtered confirmed inflow with `confirmed_amount > 0`  
+3. Calculated tenure using `TIMESTAMPDIFF(MONTH, u.date_joined, CURDATE())`  
+4. Counted total transactions per user  
+5. Calculated profit per transaction as `AVG(0.001 * confirmed_amount)`  
+6. Converted kobo to naira by dividing by 100  
+7. Used `GREATEST(..., 1)` to avoid divide-by-zero  
+8. Calculated final CLV using the formula and rounded to 2 decimal places
 
-- Used only confirmed savings transactions (`confirmed_amount > 0`)  
-- Calculated average profit per transaction as `AVG(0.001 * confirmed_amount)` and divided by 100 to convert from kobo to naira  
-- Applied `GREATEST(..., 1)` on tenure to prevent division by zero  
-- Used `ROUND(..., 2)` for naira-style currency formatting  
-- Final result includes customer ID, name, tenure, transaction count, and estimated CLV
+### What unit is `estimated_clv`?
 
-### Question?? What unit is `estimated_clv`?
-
-Naira (₦). We calculate 0.1% of each transaction in kobo, then divide by 100 to convert to naira.
+CLV is in **naira (₦)**. Since confirmed_amount is in kobo, we divide by 100 to convert.
 
 ---
-### Challenges
+## Challenges
 
-#### Handling missing last_charge_date values in investment plans:
+**Handling missing last_charge_date values in investment plans:**
 Many records in the plans_plan table had NULL in the last_charge_date field, making it difficult to determine when a plan last received inflow. To solve this, I used COALESCE(last_charge_date, created_on) as a fallback. This ensured plans without charge dates still had a valid reference point for inactivity analysis.
 
-#### Avoiding divide-by-zero errors in tenure-based calculations:
+**Avoiding divide-by-zero errors in tenure-based calculations:**
 Some users had very short tenures or multiple transactions within a single month. To avoid dividing by zero when calculating metrics like average transactions per month or CLV, I used GREATEST(..., 1) to enforce a minimum of 1 month. This preserved data integrity without skewing the output.
 
-#### Querying large SQL files locally:
+**Querying large SQL files locally:**
 The original .sql file provided for database setup was over 70MB and exceeded phpMyAdmin’s default upload limits. I adjusted the upload_max_filesize and post_max_size settings in php.ini, restarted Apache through XAMPP, and successfully imported the file for use in phpMyAdmin.
 
-#### Interpreting ambiguous business logic in CLV calculation:
+**Interpreting business logic in CLV calculation:**
 In Q4, the phrase “profit per transaction is 0.1% of the transaction value” required careful interpretation. I calculated profit dynamically using 0.1% of each user's actual inflow value. This produced a realistic customer lifetime value.
 
+---
 
 ## Summary
 
