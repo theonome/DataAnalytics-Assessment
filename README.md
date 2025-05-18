@@ -33,7 +33,7 @@ Identify customers who have at least one funded savings plan and one funded inve
 8. Sorted result by total deposit in descending order  
 9. Used `CONCAT(first_name, ' ', last_name)` instead of `u.name`, because the `name` field was often NULL in the dataset
 
-### Why `COUNT(DISTINCT s.id)` instead of alias?
+#### Why `COUNT(DISTINCT s.id)` instead of alias?
 
 In SQL, aliases created in the `SELECT` clause cannot be reused in the `HAVING` clause. The raw aggregate expression must be used directly.
 
@@ -60,7 +60,7 @@ Categorize customers based on their average number of monthly savings transactio
 7. Categorized users using `CASE WHEN` logic  
 8. Grouped results by frequency category and reported average per group
 
-### Why did I use `TIMESTAMPDIFF` instead of counting distinct months?
+#### Why did I use `TIMESTAMPDIFF` instead of counting distinct months?
 
 `TIMESTAMPDIFF` more accurately reflects the active span of a user’s transaction history.  
 It avoids overestimating users who transacted heavily in just one month, and `GREATEST(..., 1)` ensures clean division logic.
@@ -85,7 +85,7 @@ Find all active accounts (savings or investments) with no confirmed inflow in th
 8. Labeled account types as 'Savings' or 'Investment'  
 9. Sorted by `inactivity_days` descending
 
-### Why did I use `COALESCE(last_charge_date, created_on)`?
+#### Why did I use `COALESCE(last_charge_date, created_on)`?
 
 Many records had `NULL` in `last_charge_date`.  
 `COALESCE` lets us fall back to `created_on` so we don’t miss plans with missing charge data.  
@@ -113,7 +113,7 @@ Where profit is defined as **0.1% of each transaction's confirmed amount**
 7. Used `GREATEST(..., 1)` to avoid divide-by-zero  
 8. Calculated final CLV using the formula and rounded to 2 decimal places
 
-### What unit is `estimated_clv`?
+#### What unit is `estimated_clv`?
 
 CLV is in **naira (₦)**. Since confirmed_amount is in kobo, we divide by 100 to convert.
 
