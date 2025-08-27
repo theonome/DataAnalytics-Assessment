@@ -1,5 +1,7 @@
 # Customer Behavior & Financial Analytics
 
+What this is: An SQL-powered analytics suite uncovering customer behavior patterns—like churn risk, engagement segments, and CLV—for finance teams.
+
 This project analyzes customer transaction data to uncover key financial insights such as:
 
 - Active vs. inactive customer segments
