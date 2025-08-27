@@ -1,5 +1,7 @@
--- Q2: Transaction Frequency Analysis
--- Categorize customers based on their average number of savings transactions per month
+-- Analysis: Transaction Frequency Segmentation
+-- Objective: Categorize customers into frequency segments (High, Medium, Low) 
+-- based on their average number of savings transactions per active month.
+-- Rationale: Helps identify customer engagement patterns for retention strategies.
 
 SELECT 
   frequency_category,
