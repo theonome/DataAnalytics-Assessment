@@ -1,8 +1,7 @@
--- Q3: Account Inactivity Alert
--- Identify active accounts (savings or investments) with no inflow transactions in the last 1 year (365 days).
--- Savings activity is based on confirmed transactions; investment activity is estimated using last_charge_date or created_on
+-- Analysis: Account Inactivity Alert
+-- Objective: Detect savings and investment accounts with no inflow in the last 365 days.
+-- Purpose: Flag dormant accounts for re-engagement or closure strategies.
 
--- Savings accounts with no confirmed inflow in the last 365 days
 SELECT 
   s.id AS plan_id,
   s.owner_id,
