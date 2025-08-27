@@ -1,7 +1,7 @@
--- Analysis: High-Value Customers with Multiple Products
--- Objective: Identify customers who have both a funded savings plan and a funded investment plan.
--- Rationale: Multi-product customers tend to be more loyal and generate higher lifetime value.
--- Output: Customer details and total deposit amount, sorted in descending order (₦).
+-- Analysis: High-Value Multi-Product Customers
+-- Objective: Find customers with at least one funded savings account and one funded investment plan, 
+-- ranked by total deposits (₦).
+-- Purpose: Identify top-tier clients for engagement and retention strategies.
 
 SELECT 
     u.id AS owner_id,
