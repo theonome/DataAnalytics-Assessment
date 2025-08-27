@@ -1,6 +1,7 @@
--- Q1: High-Value Customers with Multiple Products 
--- Identify customers with at least one funded savings plan AND one funded investment plan
--- Sort the results by total deposit amount in naira
+-- Analysis: High-Value Customers with Multiple Products
+-- Objective: Identify customers who have both a funded savings plan and a funded investment plan.
+-- Rationale: Multi-product customers tend to be more loyal and generate higher lifetime value.
+-- Output: Customer details and total deposit amount, sorted in descending order (₦).
 
 SELECT 
     u.id AS owner_id,
