@@ -1,6 +1,24 @@
-# Cowrywise SQL Assessment: README.md
+# Customer Behavior & Financial Analytics
 
-This document outlines the logic, approach, and SQL implementation for the Cowrywise SQL Assessment, which contains four business-related SQL tasks.
+This project analyzes customer transaction data to uncover key financial insights such as:
+
+- Active vs. inactive customer segments
+- Transaction frequency trends
+- Customer Lifetime Value (CLV) calculation
+
+## Tech Stack
+- **SQL** (PostgreSQL)
+- Data modeling & ETL
+- Metrics & insights generation
+
+## Key Features
+- SQL queries for CLV and inactivity analysis
+- Scalable data model for transaction records
+
+---
+
+Originally designed to explore real-world financial behavior patterns and retention strategies.
+
 
 Each solution:
 
@@ -10,7 +28,7 @@ Each solution:
 
 ---
 
-## Q1: Customers with Funded Savings and Investment Plans
+## 1: Customers with Funded Savings and Investment Plans
 
 ### Objective
 
@@ -39,7 +57,7 @@ In SQL, aliases created in the `SELECT` clause cannot be reused in the `HAVING` 
 
 ---
 
-## Q2: Transaction Frequency Analysis
+## 2: Transaction Frequency Analysis
 
 ### Objective
 
@@ -67,7 +85,7 @@ It avoids overestimating users who transacted heavily in just one month, and `GR
 
 ---
 
-## Q3: Account Inactivity Alert
+## 3: Account Inactivity Alert
 
 ### Objective
 
@@ -93,7 +111,7 @@ It ensures every plan has a fallback for inactivity tracking, while prioritizing
 
 ---
 
-## Q4: Customer Lifetime Value (CLV) Estimation
+## 4: Customer Lifetime Value (CLV) Estimation
 
 ### Objective
 
@@ -124,13 +142,11 @@ CLV is in **naira (₦)**. Since confirmed_amount is in kobo, we divide by 100 t
 Many records in the plans_plan table had NULL in the `last_charge_date` field, making it difficult to determine when a plan last received inflow. To solve this, I used `COALESCE(last_charge_date, created_on)` as a fallback. This ensured plans without charge dates still had a valid reference point for inactivity analysis.
 
 **Avoiding divide-by-zero errors in tenure-based calculations:**
-In both Q2 and Q4, users with short tenure caused risk of division by zero. This was handled using `GREATEST(..., 1)`.
+In both queries 2 and 4, users with short tenure caused risk of division by zero. This was handled using `GREATEST(..., 1)`.
 
-**Querying large SQL files locally:**
-The .sql file was over 70MB and exceeded phpMyAdmin's limits. The issue was resolved by editing `php.ini` settings in XAMPP and restarting Apache.
 
 **Interpreting business logic in CLV calculation:**
-In Q4, the phrase “profit per transaction is 0.1% of the transaction value” required careful interpretation. I calculated profit dynamically using 0.1% of each user's actual inflow value. This produced a realistic customer lifetime value.
+In Query 4, the phrase “profit per transaction is 0.1% of the transaction value” required careful interpretation. I calculated profit dynamically using 0.1% of each user's actual inflow value. This produced a realistic customer lifetime value.
 
 ---
 
