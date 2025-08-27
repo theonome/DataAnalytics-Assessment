@@ -1,6 +1,6 @@
--- Q4: Customer Lifetime Value (CLV) Estimation
--- CLV = (total_transactions / tenure_months) * 12 * avg_profit_per_transaction
--- avg_profit_per_transaction = 0.1% of confirmed inflow per transaction
+-- Analysis: Customer Lifetime Value (CLV) Estimation
+-- Objective: Calculate estimated CLV using transaction history and tenure.
+-- Purpose: Identify high-value customers for targeted retention and upsell strategies.
 
 SELECT 
   u.id AS customer_id,
